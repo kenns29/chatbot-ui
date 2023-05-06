@@ -8,18 +8,14 @@ export const config = {
 
 const handler = async (req: Request): Promise<Response> => {
   try {
-    const reqJSON = await req.json();
-    const question = reqJSON.question ?? '';
-    const answer = reqJSON.answer ?? '';
-    const url = `${OPENAI_API_HOST}/v1/check/hallucination`;
+    const url = `${OPENAI_API_HOST}/v1/check/policy`;
     const res = await fetch(url, {
       headers: {'Content-Type': 'application/json'},
       method: 'POST',
-      body: JSON.stringify({question, answer})
     })
     const json = await res.json();
     if (!json.message) {
-      return new Response(JSON.stringify({'message': 'no hallucination result'}), { status: 200 });
+      return new Response(JSON.stringify({'message': 'no policy check result'}), { status: 200 });
     }
     return new Response(JSON.stringify(json), { status: 200 });
   } catch (error) {

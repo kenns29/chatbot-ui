@@ -243,20 +243,43 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           homeDispatch({ field: 'loading', value: false });
           homeDispatch({ field: 'messageIsStreaming', value: false });
         }
+
+        // Send hallucination check request
         const question = message?.content ?? '';
         const messages = updatedConversation.messages
         const lastAnswer = messages.length ? messages[messages.length - 1].content : ''
-        const hallucination_response = await fetch('/api/hallucination', {
+        const hallucinationResponse = await fetch('/api/hallucination', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({question, answer: lastAnswer}),
         });
-        const hallucination = await hallucination_response.json();
-        const updatedMessages: Message[] = [
+        const hallucination = await hallucinationResponse.json();
+        let updatedMessages: Message[] = [
           ...messages,
           { role: 'assistant', content: hallucination.message },
+        ];
+        updatedConversation = {
+          ...updatedConversation,
+          messages: updatedMessages,
+        };
+        homeDispatch({
+          field: 'selectedConversation',
+          value: updatedConversation,
+        });
+
+        // send policy check request
+        const policycheckResponse = await fetch('/api/policycheck', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        const policycheck = await policycheckResponse.json();
+        updatedMessages = [
+          ...updatedMessages,
+          {role: 'assistant', content: policycheck.message},
         ];
         updatedConversation = {
           ...updatedConversation,
