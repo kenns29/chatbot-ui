@@ -244,6 +244,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           homeDispatch({ field: 'messageIsStreaming', value: false });
         }
 
+        homeDispatch({ field: 'loading', value: true });
+        homeDispatch({ field: 'messageIsStreaming', value: true });
         // Send hallucination check request
         const question = message?.content ?? '';
         const messages = updatedConversation.messages
@@ -289,6 +291,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           field: 'selectedConversation',
           value: updatedConversation,
         });
+        homeDispatch({ field: 'loading', value: false });
+        homeDispatch({ field: 'messageIsStreaming', value: false });
       }
     },
     [
