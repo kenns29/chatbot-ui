@@ -277,6 +277,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           headers: {
             'Content-Type': 'application/json',
           },
+          body: JSON.stringify({question, answer: lastAnswer}),
         });
         const policycheck = await policycheckResponse.json();
         updatedMessages = [
