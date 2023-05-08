@@ -47,7 +47,7 @@ const Promptbar = () => {
     if (defaultModelId) {
       const newPrompt: Prompt = {
         id: uuidv4(),
-        name: `Prompt ${prompts.length + 1}`,
+        name: `Document ${prompts.length + 1}`,
         description: '',
         content: '',
         model: OpenAIModels[defaultModelId],
@@ -128,7 +128,7 @@ const Promptbar = () => {
       <Sidebar<Prompt>
         side={'right'}
         isOpen={showPromptbar}
-        addItemButtonTitle={t('New Docs')}
+        addItemButtonTitle={t('New Documents')}
         itemComponent={
           <Prompts
             prompts={filteredPrompts.filter((prompt) => !prompt.folderId)}
