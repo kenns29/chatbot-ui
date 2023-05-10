@@ -12,6 +12,7 @@ export enum OpenAIModelID {
   GPT_3_5_AZ = 'gpt-35-turbo',
   GPT_4 = 'gpt-4',
   GPT_4_32K = 'gpt-4-32k',
+  DOLLY_2 = 'databricks/dolly-v2-12b',
 }
 
 // in case the `DEFAULT_MODEL` environment variable is not set or set to an unsupported model
@@ -39,6 +40,12 @@ export const OpenAIModels: Record<OpenAIModelID, OpenAIModel> = {
   [OpenAIModelID.GPT_4_32K]: {
     id: OpenAIModelID.GPT_4_32K,
     name: 'GPT-4-32K',
+    maxLength: 96000,
+    tokenLimit: 32000,
+  },
+  [OpenAIModelID.DOLLY_2]: {
+    id: OpenAIModelID.DOLLY_2,
+    name: 'DOLLY-2',
     maxLength: 96000,
     tokenLimit: 32000,
   },
