@@ -257,7 +257,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({question, answer: lastAnswer}),
+          body: JSON.stringify({question, answer: lastAnswer, prompt: updatedConversation.prompt}),
         });
         const hallucination = await hallucinationResponse.json();
 
@@ -282,7 +282,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({question, answer: lastAnswer}),
+          body: JSON.stringify({question, answer: lastAnswer, prompt: updatedConversation.prompt}),
         });
         const policycheck = await policycheckResponse.json();
 

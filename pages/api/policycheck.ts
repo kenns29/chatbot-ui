@@ -11,11 +11,12 @@ const handler = async (req: Request): Promise<Response> => {
     const reqJSON = await req.json();
     const question = reqJSON.question ?? '';
     const answer = reqJSON.answer ?? '';
+    const prompt = reqJSON.prompt ?? '';
     const url = `${OPENAI_API_HOST}/v1/check/policy`;
     const res = await fetch(url, {
       headers: {'Content-Type': 'application/json'},
       method: 'POST',
-      body: JSON.stringify({question, answer})
+      body: JSON.stringify({question, answer, prompt})
     })
     const json = await res.json();
 
