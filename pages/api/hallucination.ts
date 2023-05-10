@@ -18,9 +18,7 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({question, answer})
     })
     const json = await res.json();
-    if (!json.message) {
-      return new Response(JSON.stringify({'message': 'no hallucination result'}), { status: 200 });
-    }
+
     return new Response(JSON.stringify(json), { status: 200 });
   } catch (error) {
     console.error(error);

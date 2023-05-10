@@ -250,6 +250,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         const question = message?.content ?? '';
         const messages = updatedConversation.messages
         const lastAnswer = messages.length ? messages[messages.length - 1].content : ''
+        let updatedMessages: Message[] = [...messages];
+
         const hallucinationResponse = await fetch('/api/hallucination', {
           method: 'POST',
           headers: {
@@ -258,18 +260,21 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           body: JSON.stringify({question, answer: lastAnswer}),
         });
         const hallucination = await hallucinationResponse.json();
-        let updatedMessages: Message[] = [
-          ...messages,
-          { role: 'assistant', content: hallucination.message },
-        ];
-        updatedConversation = {
-          ...updatedConversation,
-          messages: updatedMessages,
-        };
-        homeDispatch({
-          field: 'selectedConversation',
-          value: updatedConversation,
-        });
+
+        if (hallucination.message) {
+          updatedMessages = [
+            ...updatedMessages,
+            { role: 'assistant', content: hallucination.message },
+          ];
+          updatedConversation = {
+            ...updatedConversation,
+            messages: updatedMessages,
+          };
+          homeDispatch({
+            field: 'selectedConversation',
+            value: updatedConversation,
+          });
+        }
 
         // send policy check request
         const policycheckResponse = await fetch('/api/policycheck', {
@@ -280,18 +285,21 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           body: JSON.stringify({question, answer: lastAnswer}),
         });
         const policycheck = await policycheckResponse.json();
-        updatedMessages = [
-          ...updatedMessages,
-          {role: 'assistant', content: policycheck.message},
-        ];
-        updatedConversation = {
-          ...updatedConversation,
-          messages: updatedMessages,
-        };
-        homeDispatch({
-          field: 'selectedConversation',
-          value: updatedConversation,
-        });
+
+        if (policycheck.message){
+          updatedMessages = [
+            ...updatedMessages,
+            {role: 'assistant', content: policycheck.message},
+          ];
+          updatedConversation = {
+            ...updatedConversation,
+            messages: updatedMessages,
+          };
+          homeDispatch({
+            field: 'selectedConversation',
+            value: updatedConversation,
+          });
+        }
 
         saveConversation(updatedConversation)
         const updatedConversations: Conversation[] = conversations.map(
