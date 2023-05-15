@@ -30,7 +30,7 @@ export const OpenAIStream = async (
   key: string,
   messages: Message[],
 ) => {
-  let url = `${OPENAI_API_HOST}/v1/chat/completions`;
+  let url = `${OPENAI_API_HOST}/v1/chat/completions/stream`;
   if (OPENAI_API_TYPE === 'azure') {
     url = `${OPENAI_API_HOST}/openai/deployments/${AZURE_DEPLOYMENT_ID}/chat/completions?api-version=${OPENAI_API_VERSION}`;
   }
@@ -62,59 +62,55 @@ export const OpenAIStream = async (
     }),
   });
 
-  return res.json();
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
 
-  // TODO: add back streaming when the python server is ready to send streaming events
+  if (res.status !== 200) {
+    const result = await res.json();
+    if (result.error) {
+      throw new OpenAIError(
+        result.error.message,
+        result.error.type,
+        result.error.param,
+        result.error.code,
+      );
+    } else {
+      throw new Error(
+        `OpenAI API returned an error: ${
+          decoder.decode(result?.value) || result.statusText
+        }`,
+      );
+    }
+  }
 
-  // const encoder = new TextEncoder();
-  // const decoder = new TextDecoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      const onParse = (event: ParsedEvent | ReconnectInterval) => {
+        if (event.type === 'event') {
+          const data = event.data;
 
-  // if (res.status !== 200) {
-  //   const result = await res.json();
-  //   if (result.error) {
-  //     throw new OpenAIError(
-  //       result.error.message,
-  //       result.error.type,
-  //       result.error.param,
-  //       result.error.code,
-  //     );
-  //   } else {
-  //     throw new Error(
-  //       `OpenAI API returned an error: ${
-  //         decoder.decode(result?.value) || result.statusText
-  //       }`,
-  //     );
-  //   }
-  // }
+          try {
+            const json = JSON.parse(data);
+            if (json.choices[0].finish_reason != null) {
+              controller.close();
+              return;
+            }
+            const text = json.choices[0].delta.content;
+            const queue = encoder.encode(text);
+            controller.enqueue(queue);
+          } catch (e) {
+            controller.error(e);
+          }
+        }
+      };
 
-  // const stream = new ReadableStream({
-  //   async start(controller) {
-  //     const onParse = (event: ParsedEvent | ReconnectInterval) => {
-  //       if (event.type === 'event') {
-  //         const data = event.data;
+      const parser = createParser(onParse);
 
-  //         try {
-  //           const json = JSON.parse(data);
-  //           if (json.choices[0].finish_reason != null) {
-  //             controller.close();
-  //             return;
-  //           }
-  //           const text = json.choices[0].delta.content;
-  //           const queue = encoder.encode(text);
-  //           controller.enqueue(queue);
-  //         } catch (e) {
-  //           controller.error(e);
-  //         }
-  //       }
-  //     };
+      for await (const chunk of res.body as any) {
+        parser.feed(decoder.decode(chunk));
+      }
+    },
+  });
 
-  //     const parser = createParser(onParse);
-
-  //     for await (const chunk of res.body as any) {
-  //       parser.feed(decoder.decode(chunk));
-  //     }
-  //   },
-  // });
-
-  // return stream;
+  return stream;
 };
